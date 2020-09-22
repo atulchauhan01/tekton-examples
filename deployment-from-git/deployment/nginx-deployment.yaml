@@ -1,0 +1,23 @@
+## This deploymetn file is not used in this example, 
+## deployment file is used from the Git repo
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deploy
+  labels:
+    app: nginx-deploy
+spec:
+  replicas: 1
+  template:
+    #POD definitin under template, except apiVersion and kind
+    metadata:
+      name: myapp-pod
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+  selector:
+    matchLabels:
+      app: myapp
