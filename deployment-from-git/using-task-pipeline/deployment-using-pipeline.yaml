@@ -14,6 +14,7 @@ spec:
 # This task has steps that helps in debug
 # It will print all file in workspace folder
 # Code to read specific file from the GIT repository
+# and make the deployment
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -48,17 +49,55 @@ spec:
 # This YAML should be applied using kubectl create command
 # tkn task start <task-name> will generate serviceAccountName="" , so access issue comes
 #
+#apiVersion: tekton.dev/v1beta1
+#kind: TaskRun
+#metadata:
+#  name: deployment-nginx-run
+#spec:
+#  serviceAccountName: service-account
+#  taskRef:
+#    name: deployment-nginx
+#  resources:
+#    inputs:
+#      - name: workspace
+#        resourceRef:
+#          name: deployment-example-git
+
+#---
+#Pipeline to deploy nginx
 apiVersion: tekton.dev/v1beta1
-kind: TaskRun
+kind: Pipeline
 metadata:
-  name: deployment-nginx-run
+  name: deploy-nginx-pipeline
 spec:
-  status: "TaskRunCancelled"
-  serviceAccountName: service-account
-  taskRef:
-    name: deployment-nginx
   resources:
-    inputs:
-      - name: workspace
-        resourceRef:
-          name: deployment-example-git
+    - name: workspace-pipeline #this name should match with resource and resources.name in pipelineRun
+      type: git
+  tasks:
+  - name: deployment-nginx
+    taskRef:
+      name: deployment-nginx
+    resources:
+      inputs:
+        - name: workspace # this name should match with resources name in task
+          resource: workspace-pipeline
+
+---
+# PipelineRun
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: deploy-nginx-pipeline-run
+spec:
+  serviceAccountName: service-account
+  pipelineRef:
+    name: deploy-nginx-pipeline
+  resources:
+    - name: workspace-pipeline
+      resourceRef:
+        name: deployment-example-git
+
+# Steps:
+# Create service account using service-account.yaml
+# kubect create -f deployment-taskrun.yaml
+# pipeline should be executed as create always

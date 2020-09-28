@@ -11,9 +11,8 @@ spec:
     - name: url
       value: https://github.com/atulchauhan01/kubernetes-yaml-files.git
 ---
-# This task has steps that helps in debug
-# It will print all file in workspace folder
-# Code to read specific file from the GIT repository
+
+# Steps to read specific file from the GIT repository and do the deployment
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -53,7 +52,6 @@ kind: TaskRun
 metadata:
   name: deployment-nginx-run
 spec:
-  status: "TaskRunCancelled"
   serviceAccountName: service-account
   taskRef:
     name: deployment-nginx
@@ -62,3 +60,7 @@ spec:
       - name: workspace
         resourceRef:
           name: deployment-example-git
+
+# Steps:
+# Create service account using service-account.yaml
+# kubect create -f deployment-taskrun.yaml

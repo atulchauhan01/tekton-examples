@@ -1,5 +1,5 @@
 ## This deploymetn file is not used in this example, 
-## deployment file is used from the Git repo
+## deployment file is used from the Git repo https://github.com/atulchauhan01/kubernetes-yaml-files.git
 apiVersion: apps/v1
 kind: Deployment
 metadata:
