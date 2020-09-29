@@ -7,7 +7,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: deployment-nginx
+  name: deployment-nginx-task
 spec:
   resources:
     inputs:
@@ -31,7 +31,7 @@ spec:
       - -c
       - |
         set -ex
-        find /workspace
+        find workspace/deployment-from-git
 #       find workspace/tekton/task 
     - name: readme
       image: ubuntu
@@ -51,6 +51,13 @@ spec:
     - name: readme-2
       image: ubuntu
       script: cat $(inputs.resources.workspace.path)/deployment-from-git/deployment/nginx-deployment.yaml
+    - name: deploy-app
+      image: lachlanevenson/k8s-kubectl
+      command: ["kubectl"]
+      args:
+        - "apply"
+        - "-f"
+        - "workspace/tekton/task/nginx-deployment.yaml"      
            
 
 ---
@@ -61,11 +68,12 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
-  name: deployment-nginx-run
+#  name: deployment-nginx-run
+  generateName: deployment-nginx-run-
 spec:
   serviceAccountName: service-account
   taskRef:
-    name: deployment-nginx
+    name: deployment-nginx-task
   params:
   - name: imageTag
     value: latest

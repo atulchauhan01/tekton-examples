@@ -21,7 +21,7 @@ spec:
       - -c
       - |
         set -ex
-        find workspace
+        find workspace/deployment-from-git
     - name: read-config-yaml
       image: ubuntu
       script: cat workspace/deployment-from-git/config/config-test.yaml      
