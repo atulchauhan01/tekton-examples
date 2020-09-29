@@ -1,32 +1,19 @@
 # service-account need to be created before deployment using service-account.yaml
 
-# Pipeline resource for GIT
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: deployment-example-git
-spec:
-  type: git
-  params:
-    - name: url
-      value: https://github.com/atulchauhan01/kubernetes-yaml-files.git
----
-
 # This task has steps that helps in debug
 # It will print all file in workspace folder
 # Code to read specific file from the GIT repository
-# and make the deployment
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: deployment-nginx
+  name: apply-config-task
 spec:
   resources:
     inputs:
       - name: workspace
         type: git
   steps:
-    - name: build-and-push-1
+    - name: fetch-print-files
       image: ubuntu
       command:
       - /bin/bash
@@ -34,17 +21,19 @@ spec:
       - -c
       - |
         set -ex
-        find /workspace  
-    - name: readme
+        find workspace
+    - name: read-config-yaml
       image: ubuntu
-      script: cat workspace/tekton/task/nginx-deployment.yaml
-    - name: deploy-app
+      script: cat workspace/deployment-from-git/config/config-test.yaml      
+    - name: apply-config-map
       image: lachlanevenson/k8s-kubectl
       command: ["kubectl"]
       args:
         - "apply"
         - "-f"
-        - "workspace/tekton/task/nginx-deployment.yaml"
+        - "workspace/deployment-from-git/config/config-test.yaml"      
+           
+
 ---
 # This task run will run using mentioned service account, will not use default
 # This YAML should be applied using kubectl create command
@@ -53,17 +42,17 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
-  name: deployment-nginx-run
+  name: apply-config-task-run
 spec:
   serviceAccountName: service-account
   taskRef:
-    name: deployment-nginx
+    name: apply-config-task
   resources:
     inputs:
       - name: workspace
         resourceRef:
           name: deployment-example-git
 
+
 # Steps:
 # Create service account using service-account.yaml
-# kubect create -f deployment-taskrun.yaml

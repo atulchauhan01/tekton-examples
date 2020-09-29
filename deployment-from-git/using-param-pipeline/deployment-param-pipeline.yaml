@@ -1,17 +1,5 @@
 # service-account need to be created before deployment using service-account.yaml
 
-# Pipeline resource for GIT
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: deployment-example-git
-spec:
-  type: git
-  params:
-    - name: url
-      value: https://github.com/atulchauhan01/kubernetes-yaml-files.git
----
-
 # This task has steps that helps in debug
 # It will print all file in workspace folder
 # Code to read specific file from the GIT repository
@@ -25,6 +13,15 @@ spec:
     inputs:
       - name: workspace
         type: git
+  params:
+    - name: imageUrl
+      type: string
+      description: Url of image repository
+      default: nginx-test
+    - name: imageTag
+      type: string
+      description: Tag of the images to be used
+      default: latest-test
   steps:
     - name: build-and-push-1
       image: ubuntu
@@ -34,17 +31,28 @@ spec:
       - -c
       - |
         set -ex
-        find /workspace  
+        find /workspace
+#       find workspace/tekton/task 
     - name: readme
       image: ubuntu
-      script: cat workspace/tekton/task/nginx-deployment.yaml
-    - name: deploy-app
-      image: lachlanevenson/k8s-kubectl
-      command: ["kubectl"]
+      script: cat workspace/deployment-from-git/deployment/nginx-deployment.yaml
+    - name: print-params
+      image: ubuntu
+      command: [echo]
+      args: ["Git source path is $(inputs.resources.workspace.path) | $(resources.inputs.workspace.path), ImageURl is $(params.imageUrl) and Tag is $(params.imageTag)"]
+    - name: update-yaml
+      image: alpine
+      command: ["sed"]
       args:
-        - "apply"
-        - "-f"
-        - "workspace/tekton/task/nginx-deployment.yaml"
+        - "-i"
+        - "-e"
+        - "s;IMAGE;$(params.imageUrl):$(params.imageTag);g"
+        - "workspace/deployment-from-git/deployment/nginx-deployment.yaml"    
+    - name: readme-2
+      image: ubuntu
+      script: cat $(inputs.resources.workspace.path)/deployment-from-git/deployment/nginx-deployment.yaml
+           
+
 ---
 # This task run will run using mentioned service account, will not use default
 # This YAML should be applied using kubectl create command
@@ -58,11 +66,17 @@ spec:
   serviceAccountName: service-account
   taskRef:
     name: deployment-nginx
+  params:
+  - name: imageTag
+    value: latest
+  - name: imageUrl
+    value: nginx  
   resources:
     inputs:
       - name: workspace
         resourceRef:
           name: deployment-example-git
+
 
 # Steps:
 # Create service account using service-account.yaml
