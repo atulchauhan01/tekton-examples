@@ -25,6 +25,7 @@ spec:
     - name: read-config-yaml
       image: ubuntu
       script: cat workspace/deployment-from-git/config/config-test.yaml      
+#     Note: If the script field is present, the step cannot also contain a command field.      
     - name: apply-config-map
       image: lachlanevenson/k8s-kubectl
       command: ["kubectl"]

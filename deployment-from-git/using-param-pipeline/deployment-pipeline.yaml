@@ -5,7 +5,8 @@ metadata:
   name: deployment-pipeline
 spec:
   resources:
-    - name: workspace-pipeline #this name should match with resource and resources.name in pipelineRun
+#this name should match with resource and resources.name in pipelineRun
+    - name: workspace-pipeline
       type: git
   params:
     - name: imageUrl
@@ -24,9 +25,9 @@ spec:
       inputs:
         - name: workspace # this name should match with resources name in task
           resource: workspace-pipeline
-  - name: deployment-nginx
+  - name: deployment-nginx-task
     taskRef:
-      name: deployment-nginx
+      name: deployment-nginx-task
     params:
     - name: imageTag
       value: $(params.imageTag)

@@ -6,6 +6,8 @@ metadata:
 spec:
   type: git
   params:
+    - name: revision
+      value: master
     - name: url
       value: https://github.com/atulchauhan01/tekton-examples.git
 #      value: https://github.com/atulchauhan01/kubernetes-yaml-files.git
